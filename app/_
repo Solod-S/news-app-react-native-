@@ -1,0 +1,129 @@
+import { useRouter } from "expo-router";
+import React, { useEffect } from "react";
+import {
+  Dimensions,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+
+const { width, height } = Dimensions.get("window");
+
+const Page = () => {
+  const router = useRouter();
+
+  // Shared animation values
+  const titleOpacity = useSharedValue(0);
+  const subtitleOpacity = useSharedValue(0);
+  const buttonTranslateY = useSharedValue(50);
+  const buttonOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    // Animate in sequence
+    titleOpacity.value = withTiming(1, { duration: 800 });
+    subtitleOpacity.value = withTiming(1, { duration: 800, delay: 300 });
+    buttonOpacity.value = withTiming(1, { duration: 800, delay: 700 });
+    buttonTranslateY.value = withTiming(0, {
+      duration: 800,
+      delay: 700,
+      easing: Easing.out(Easing.exp),
+    });
+  }, []);
+
+  const titleStyle = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+  }));
+
+  const subtitleStyle = useAnimatedStyle(() => ({
+    opacity: subtitleOpacity.value,
+  }));
+
+  const buttonStyle = useAnimatedStyle(() => ({
+    opacity: buttonOpacity.value,
+    transform: [{ translateY: buttonTranslateY.value }],
+  }));
+
+  return (
+    <ImageBackground
+      source={{
+        uri: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
+      }}
+      resizeMode="cover"
+      style={styles.background}
+    >
+      <View style={styles.overlay}>
+        <Animated.Text style={[styles.title, titleStyle]}>MEZHA</Animated.Text>
+        <Animated.Text style={[styles.subtitle, subtitleStyle]}>
+          Discover the world of news
+        </Animated.Text>
+
+        <Animated.View style={[styles.buttonWrapper, buttonStyle]}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.replace("/(tabs)")}
+          >
+            <Text style={styles.buttonText}>Start Reading</Text>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </ImageBackground>
+  );
+};
+
+export default Page;
+
+const styles = StyleSheet.create({
+  background: {
+    width,
+    height,
+    justifyContent: "center",
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  title: {
+    fontSize: 52,
+    color: "#fff",
+    fontWeight: "900",
+    letterSpacing: 2,
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 20,
+    color: "#ccc",
+    textAlign: "center",
+    marginBottom: 50,
+  },
+  buttonWrapper: {
+    alignItems: "center",
+  },
+  button: {
+    backgroundColor: "#ff4d4d",
+    paddingVertical: 16,
+    paddingHorizontal: 36,
+    borderRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: "bold",
+    letterSpacing: 1,
+  },
+});
