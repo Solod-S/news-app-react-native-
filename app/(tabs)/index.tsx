@@ -1,6 +1,7 @@
+import { Header } from "@/components";
 import { Colors } from "@/constants/Colors";
 import React from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {};
@@ -8,7 +9,7 @@ type Props = {};
 const Page = (props: Props) => {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Text>Home Screen</Text>
+      <Header />
     </SafeAreaView>
   );
 };
@@ -20,7 +21,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 20,
+    paddingTop: 10,
     paddingBottom: 10,
   },
 });

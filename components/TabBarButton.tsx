@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 const TabBarButton = ({
   onPress,
@@ -53,7 +54,7 @@ const TabBarButton = ({
         style={[
           {
             color: isFocused ? Colors.tabIconSelected : Colors.tabIconDefault,
-            fontSize: 12,
+            fontSize: hp(1.5),
           },
           animatedTextStyle,
         ]}

@@ -7,7 +7,10 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 const Page = () => {
   const router = useRouter();
 
@@ -19,8 +22,12 @@ const Page = () => {
   // Trigger animations on mount
   useEffect(() => {
     titleOpacity.value = withTiming(1, { duration: 800 });
-    subtitleOpacity.value = withTiming(1, { duration: 800, delay: 300 });
-    buttonOpacity.value = withTiming(1, { duration: 800, delay: 600 });
+    setTimeout(() => {
+      subtitleOpacity.value = withTiming(1, { duration: 800 });
+    }, 300);
+    setTimeout(() => {
+      buttonOpacity.value = withTiming(1, { duration: 800 });
+    }, 600);
   }, []);
 
   // Animated styles
@@ -38,9 +45,7 @@ const Page = () => {
     <View style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Image
-        source={{
-          uri: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
-        }}
+        source={require("./../assets/images/start.jpg")}
         resizeMode="cover"
         style={styles.background}
       />
@@ -49,7 +54,7 @@ const Page = () => {
           MEZHA
         </Animated.Text>
         <Animated.Text style={[styles.subtitle, animatedSubtitleStyle]}>
-          Discover the world of news
+          Discover the latest news
         </Animated.Text>
 
         <Animated.View style={animatedButtonStyle}>
@@ -57,7 +62,7 @@ const Page = () => {
             style={styles.button}
             onPress={() => router.replace("/(tabs)")}
           >
-            <Text style={styles.buttonText}>Start Reading</Text>
+            <Text style={styles.buttonText}>Get Started</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>
@@ -81,28 +86,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   title: {
-    fontSize: 48,
+    fontSize: hp(5.2),
     color: "#ffffff",
     fontFamily: "RubikMonoOne",
-    marginBottom: 16,
-    letterSpacing: 2,
+    // marginBottom: 16,
+    letterSpacing: -2,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: hp(2),
     color: "#dddddd",
     textAlign: "center",
-    marginBottom: 40,
+    marginBottom: 20,
   },
   button: {
     backgroundColor: "#ff4d4d",
     paddingVertical: 14,
     paddingHorizontal: 32,
-    borderRadius: 30,
+    borderRadius: 15,
     elevation: 4,
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: hp(3),
+    fontWeight: "600",
   },
 });
