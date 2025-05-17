@@ -1,18 +1,23 @@
+import { Colors } from "@/constants/Colors";
+import { useRouter } from "expo-router";
 import { debounce } from "lodash";
-import { useCallback, useState } from "react";
 import type { JSX } from "react";
+import { useCallback, useState } from "react";
 import {
+  ActivityIndicator,
+  Dimensions,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { XMarkIcon } from "react-native-heroicons/outline";
-import { fetchSearchNews } from "../utils/NewsApi";
-// import NewsSection from "../components/NewsSection/NewsSection";
-import { useRouter } from "expo-router";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { NewsSection } from "../components";
+import { fetchSearchNews } from "../utils/NewsApi";
+const { height, width } = Dimensions.get("window");
 
 interface Article {
   title: string;
@@ -39,13 +44,12 @@ export default function SearchScreen(): JSX.Element {
       try {
         const data = await fetchSearchNews(search);
 
-        setLoading(false);
-
         if (data && data.articles) {
           setResults(data.articles);
         }
       } catch (error) {
         console.error("Error fetching news:", error);
+      } finally {
         setLoading(false);
       }
     }
@@ -84,7 +88,7 @@ export default function SearchScreen(): JSX.Element {
           }}
         />
         <TouchableOpacity onPress={() => router.back()}>
-          <XMarkIcon size={25} color="green" strokeWidth={3} />
+          <XMarkIcon size={25} color={Colors.darkGrey} strokeWidth={3} />
         </TouchableOpacity>
       </View>
 
@@ -92,22 +96,66 @@ export default function SearchScreen(): JSX.Element {
       <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
         <Text
           style={{
-            fontSize: 20,
+            fontSize: hp(1.6),
             color: "black",
             fontFamily: "SpaceGroteskBold",
+            opacity: 0.6,
           }}
         >
-          {results?.length} News for {searchTerm}
+          {results?.length} News for: {searchTerm}
         </Text>
       </View>
 
+      {loading && (
+        <ActivityIndicator
+          size="large"
+          color={Colors.tint}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width,
+            height,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        />
+      )}
+
+      {!loading && results?.length <= 0 && (
+        <View style={styles.centeredContainer}>
+          <Text style={styles.centeredText}>There is no news</Text>
+        </View>
+      )}
       <ScrollView
         contentContainerStyle={{
           paddingBottom: hp(5),
         }}
       >
-        {/* <NewsSection newsProps={results} label="Search Results" /> */}
+        <NewsSection
+          newsProps={results.map(article => ({
+            ...article,
+            publishedAt: article.publishedAt ?? "",
+          }))}
+          label="Search Results"
+        />
       </ScrollView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  centeredContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width,
+    height,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  centeredText: {
+    fontSize: hp(1.8),
+    color: "gray",
+  },
+});
