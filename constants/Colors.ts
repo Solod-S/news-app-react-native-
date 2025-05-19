@@ -11,4 +11,5 @@ export const Colors = {
   darkGrey: "#666",
   lightGrey: "#999",
   softText: "#555",
+  secondColor: "#47008C",
 };

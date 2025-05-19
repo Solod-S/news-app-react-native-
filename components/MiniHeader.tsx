@@ -1,8 +1,8 @@
 import { Colors } from "@/constants/Colors";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
-// Типы пропсов
 interface MiniHeaderProps {
   label: string;
 }
@@ -20,20 +20,19 @@ export function MiniHeader({ label }: MiniHeaderProps) {
   );
 }
 
-// Стили
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 16,
+    marginVertical: 14,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   labelText: {
-    fontSize: 20,
+    fontSize: hp(2.4),
     color: Colors.darkGrey,
   },
   viewAllText: {
-    fontSize: 16,
+    fontSize: hp(1.8),
     color: "#4b5563",
   },
 });

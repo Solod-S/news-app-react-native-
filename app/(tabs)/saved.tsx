@@ -1,34 +1,47 @@
+import { Colors } from "@/constants/Colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
-import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useState } from "react";
+import {
+  Alert,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Vibration,
+  View,
+} from "react-native";
 import { BookmarkSquareIcon } from "react-native-heroicons/solid";
-import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from "react-native-responsive-screen";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+
+interface Article {
+  author: string;
+  title: string;
+  url: string;
+  urlToImage: string;
+  publishedAt: string;
+}
 
 export default function SavedScreen() {
   const router = useRouter();
-  const [savedArticles, setSavedArticles] = useState([]);
-  const [bookmarkStatus, setBookmarkStatus] = useState([]);
-  const [urlList, setUrlList] = useState([]);
+  const [savedArticles, setSavedArticles] = useState<Article[]>([]);
 
-  // Function to handle click on an item
-  const handleClick = item => {
+  const handleClick = (item: Article) => {
     router.push({
       pathname: "/newsDetails",
       params: { ...item },
     });
   };
 
-  useEffect(() => {
-    const urls = savedArticles.map(item => item.url);
-    setUrlList(urls);
-  }, [savedArticles]);
-
-  // Function to format the date
-  function formatDate(isoDate) {
-    const options = {
+  const formatDate = (isoDate: string) => {
+    const options: Intl.DateTimeFormatOptions = {
       weekday: "short",
       day: "2-digit",
       month: "short",
@@ -36,31 +49,34 @@ export default function SavedScreen() {
     };
     const date = new Date(isoDate);
     return date.toLocaleDateString(undefined, options);
-  }
+  };
 
-  const toggleBookmarkAndSave = async (item, index) => {
+  const toggleBookmarkAndSave = async (item: Article, index: number) => {
     try {
-      const savedArticles = await AsyncStorage.getItem("savedArticles");
-      let savedArticlesArray = savedArticles ? JSON.parse(savedArticles) : [];
+      const saved = await AsyncStorage.getItem("savedArticles");
+      let savedArticlesArray: Article[] = saved ? JSON.parse(saved) : [];
 
-      // Check if the article is already in the bookmarked list
-      const isArticleBookmarked = savedArticlesArray.some(
+      const isBookmarked = savedArticlesArray.some(
         savedArticle => savedArticle.url === item.url
       );
 
-      if (!isArticleBookmarked) {
-        // If the article is not bookmarked, add it to the bookmarked list
+      if (!isBookmarked) {
         savedArticlesArray.push(item);
         await AsyncStorage.setItem(
           "savedArticles",
           JSON.stringify(savedArticlesArray)
         );
-        const updatedStatus = [...bookmarkStatus];
-        updatedStatus[index] = true;
-        setBookmarkStatus(updatedStatus);
-        // console.log("Article is bookmarked");
+        Toast.show({
+          type: "success",
+          position: "top",
+          text1: "✅ Success",
+          text2: "The article has been added successfully",
+          visibilityTime: 2000,
+          autoHide: true,
+          topOffset: 50,
+        });
+        refreshSavedArticles();
       } else {
-        // If the article is already bookmarked, remove it from the list
         const updatedSavedArticlesArray = savedArticlesArray.filter(
           savedArticle => savedArticle.url !== item.url
         );
@@ -68,153 +84,228 @@ export default function SavedScreen() {
           "savedArticles",
           JSON.stringify(updatedSavedArticlesArray)
         );
-        const updatedStatus = [...bookmarkStatus];
-        updatedStatus[index] = false;
-        setBookmarkStatus(updatedStatus);
-        // console.log("Article is removed from bookmarks");
+        Toast.show({
+          type: "info", // or "error" if you prefer
+          position: "top",
+          text1: "🗑️ Deleted",
+          text2: "The article has been deleted",
+          visibilityTime: 2000,
+          autoHide: true,
+          topOffset: 50,
+        });
+        refreshSavedArticles();
       }
     } catch (error) {
-      // console.log("Error Saving/Removing Article", error);
+      console.error("Error Saving/Removing Article", error);
+      Toast.show({
+        type: "error",
+        position: "top",
+        text1: "❌ Error",
+        text2: "Something went wrong. Please try again.",
+        visibilityTime: 2000,
+        autoHide: true,
+        topOffset: 50,
+      });
     }
   };
 
-  // Load saved articles from AsyncStorage when the screen gains focus
-  useFocusEffect(
-    useCallback(() => {
-      const loadSavedArticles = async () => {
-        try {
-          const savedArticles = await AsyncStorage.getItem("savedArticles");
-          const savedArticlesArray = savedArticles
-            ? JSON.parse(savedArticles)
-            : [];
+  const refreshSavedArticles = async () => {
+    try {
+      const saved = await AsyncStorage.getItem("savedArticles");
+      const savedArray: Article[] = saved ? JSON.parse(saved) : [];
+      setSavedArticles(savedArray);
+    } catch (error) {
+      console.error("Error refreshing saved articles", error);
+    }
+  };
 
-          // const isArticleBookmarkedList = urlList.map((url) =>
-          //   savedArticlesArray.some((savedArticle) => savedArticle.url === url)
-          // );
-
-          // Set the bookmark status for all items based on the loaded data
-          // setBookmarkStatus(isArticleBookmarkedList);
-          setSavedArticles(savedArticlesArray);
-        } catch (error) {
-          // console.log("Error loading saved articles", error);
-        }
-      };
-
-      loadSavedArticles();
-      // console.log("Pull saved articles from AsyncStorage");
-    }, [, urlList]) // Include 'navigation' in the dependencies array if needed
-  );
+  const handleClear = () => {
+    Vibration.vibrate(200); // Vibrate for 100ms before showing the Alert
+    Alert.alert(
+      "Clear All?",
+      "Are you sure you want to remove all saved articles?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear",
+          style: "default",
+          onPress: () => clearSavedArticles(),
+        },
+      ]
+    );
+  };
 
   const clearSavedArticles = async () => {
     try {
       await AsyncStorage.removeItem("savedArticles");
+      Toast.show({
+        type: "info", // or "error" if you prefer
+        position: "top",
+        text1: "🗑️ Deleted",
+        text2: "The articles have been deleted",
+        visibilityTime: 2000,
+        autoHide: true,
+        topOffset: 50,
+      });
       setSavedArticles([]);
-      console.log("Clear all saved articles");
     } catch (error) {
-      // console.log("Error clearing saved articles", error);
+      console.error("Error clearing saved articles", error);
     }
   };
 
-  const renderItem = ({ item, index }) => {
-    return (
-      <TouchableOpacity
-        className="mb-4 space-y-1 "
-        key={index}
-        onPress={() => handleClick(item)}
-      >
-        <View className="flex-row justify-start w-[100%]shadow-sm">
-          {/* Image */}
-          <View className="items-start justify-start w-[20%]">
-            <Image
-              source={{
-                uri:
-                  item.urlToImage ||
-                  "https://images.unsplash.com/photo-1495020689067-958852a7765e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bmV3c3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
-              }}
-              style={{ width: hp(9), height: hp(10) }}
-              resizeMode="cover"
-              className="rounded-lg"
-            />
-          </View>
+  useFocusEffect(
+    useCallback(() => {
+      const loadSavedArticles = async () => {
+        try {
+          const saved = await AsyncStorage.getItem("savedArticles");
+          const savedArray: Article[] = saved ? JSON.parse(saved) : [];
+          setSavedArticles(savedArray);
+        } catch (error) {
+          console.error("Error loading saved articles", error);
+        }
+      };
 
-          {/* Content */}
+      loadSavedArticles();
+    }, [])
+  );
 
-          <View className="w-[70%] pl-4 justify-center space-y-1">
-            {/* Author */}
-            <Text className="text-xs font-bold text-gray-900 dark:text-neutral-300">
-              {item.author}
-            </Text>
-
-            {/* Title */}
-            <Text
-              className="text-neutral-800 capitalize max-w-[90%] dark:text-white "
-              style={{
-                fontSize: hp(1.7),
-                fontFamily: "SpaceGroteskBold",
-              }}
-            >
-              {item.title.length > 50
-                ? item.title.slice(0, 50) + "..."
-                : item.title}
-            </Text>
-
-            {/* Date */}
-            <Text className="text-xs text-gray-700 dark:text-neutral-300">
-              {formatDate(item.publishedAt)}
-            </Text>
-          </View>
-
-          {/* Save */}
-          <View className="w-[10%] justify-center">
-            <TouchableOpacity
-              onPress={() => toggleBookmarkAndSave(item, index)}
-            >
-              <BookmarkSquareIcon color="green" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  return (
-    <SafeAreaView className="p-4 bg-white flex-1 dark:bg-neutral-900">
-      {/* Header  */}
-      <View className="flex-row justify-between items-center">
-        <Text
-          className="font-bold text-xl text-green-800 dark:text-white"
-          style={{
-            fontFamily: "SpaceGroteskBold",
+  const renderItem = ({ item, index }: { item: Article; index: number }) => (
+    <TouchableOpacity
+      style={styles.itemContainer}
+      onPress={() => handleClick(item)}
+    >
+      <View style={styles.row}>
+        <Image
+          source={{
+            uri:
+              item.urlToImage ||
+              "https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=500&q=60",
           }}
-        >
-          Saved Articles
-        </Text>
-        <TouchableOpacity
-          onPress={clearSavedArticles}
-          className="bg-green-800 py-1 px-4 rounded-lg"
-        >
-          <Text
-            className="font-bold text-lg text-white dark:text-white"
-            style={{
-              fontFamily: "SpaceGroteskBold",
-            }}
-          >
-            Clear
+          style={styles.image}
+          resizeMode="cover"
+        />
+        <View style={styles.content}>
+          <Text style={styles.author}>{item.author}</Text>
+          <Text style={styles.title}>
+            {item.title.length > 50
+              ? item.title.slice(0, 50) + "..."
+              : item.title}
           </Text>
+          <Text style={styles.date}>{formatDate(item.publishedAt)}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.icon}
+          onPress={() => toggleBookmarkAndSave(item, index)}
+        >
+          <BookmarkSquareIcon color={Colors.secondColor} />
         </TouchableOpacity>
       </View>
+    </TouchableOpacity>
+  );
 
-      <View style={{ marginVertical: hp(2) }} className="space-y-2 ">
-        <FlatList
-          data={savedArticles}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={item => item.title}
-          renderItem={renderItem}
-          contentContainerStyle={{
-            paddingBottom: hp(2),
-          }}
-        />
+  return (
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Saved Articles</Text>
+        <TouchableOpacity
+          disabled={savedArticles?.length <= 0}
+          onPress={handleClear}
+          style={[
+            styles.clearButton,
+            { opacity: savedArticles?.length <= 0 ? 0.2 : 1 },
+          ]}
+        >
+          <Text style={styles.clearButtonText}>Clear</Text>
+        </TouchableOpacity>
       </View>
+      {savedArticles?.length <= 0 && (
+        <View style={styles.centeredContainer}>
+          <Text style={styles.centeredText}>There is no news</Text>
+        </View>
+      )}
+      <FlatList
+        data={savedArticles}
+        keyExtractor={item => item.title}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: hp(2) }}
+      />
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  centeredContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: wp(100),
+    height: hp(100),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  centeredText: {
+    fontSize: hp(1.8),
+    color: "gray",
+  },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#fff",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  headerTitle: {
+    fontSize: hp(2.8),
+    fontWeight: "bold",
+    color: Colors.black,
+  },
+  clearButton: {
+    backgroundColor: Colors.secondColor,
+    paddingVertical: 4,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  clearButtonText: {
+    color: "#fff",
+    fontSize: hp(1.8),
+    fontWeight: "bold",
+  },
+  itemContainer: {
+    marginBottom: 16,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  image: {
+    width: hp(9),
+    height: hp(10),
+    borderRadius: 8,
+  },
+  content: {
+    flex: 1,
+    paddingLeft: 16,
+  },
+  author: {
+    fontSize: hp(1.4),
+    fontWeight: "bold",
+    color: "#333",
+  },
+  title: {
+    fontSize: hp(1.7),
+    color: "#111",
+    fontWeight: "600",
+  },
+  date: {
+    fontSize: hp(1.4),
+    color: "#666",
+  },
+  icon: {
+    paddingLeft: 8,
+  },
+});

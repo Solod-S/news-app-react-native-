@@ -1,3 +1,4 @@
+import { Colors } from "@/constants/Colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -13,6 +14,7 @@ import {
 } from "react-native";
 import { BookmarkSquareIcon } from "react-native-heroicons/solid";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
+import Toast from "react-native-toast-message";
 
 interface NewsItem {
   url: string;
@@ -75,6 +77,15 @@ export function NewsSection({ newsProps }: Props) {
         const updatedStatus = [...bookmarkStatus];
         updatedStatus[index] = true;
         setBookmarkStatus(updatedStatus);
+        Toast.show({
+          type: "success",
+          position: "top",
+          text1: "✅ Success",
+          text2: "The article has been added successfully",
+          visibilityTime: 2000,
+          autoHide: true,
+          topOffset: 50,
+        });
       } else {
         const updatedSavedArticlesArray = savedArticlesArray.filter(
           savedArticle => savedArticle.url !== item.url
@@ -86,9 +97,27 @@ export function NewsSection({ newsProps }: Props) {
         const updatedStatus = [...bookmarkStatus];
         updatedStatus[index] = false;
         setBookmarkStatus(updatedStatus);
+        Toast.show({
+          type: "info", // or "error" if you prefer
+          position: "top",
+          text1: "🗑️ Deleted",
+          text2: "The article has been deleted",
+          visibilityTime: 2000,
+          autoHide: true,
+          topOffset: 50,
+        });
       }
     } catch (error) {
       console.log("Error Saving/Removing Article", error);
+      Toast.show({
+        type: "error",
+        position: "top",
+        text1: "❌ Error",
+        text2: "Something went wrong. Please try again.",
+        visibilityTime: 2000,
+        autoHide: true,
+        topOffset: 50,
+      });
     }
   };
 
@@ -160,7 +189,7 @@ export function NewsSection({ newsProps }: Props) {
         <View style={styles.bookmarkContainer}>
           <TouchableOpacity onPress={() => toggleBookmarkAndSave(item, index)}>
             <BookmarkSquareIcon
-              color={bookmarkStatus[index] ? "#47008C" : "gray"}
+              color={bookmarkStatus[index] ? `${Colors.secondColor}` : "gray"}
             />
           </TouchableOpacity>
         </View>
@@ -213,7 +242,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   authorText: {
-    fontSize: 12,
+    fontSize: hp(1.4),
     fontWeight: "bold",
     color: "#1f2937",
   },
@@ -223,7 +252,7 @@ const styles = StyleSheet.create({
     maxWidth: "90%",
   },
   dateText: {
-    fontSize: 12,
+    fontSize: hp(1.4),
     color: "#4b5563",
   },
   bookmarkContainer: {

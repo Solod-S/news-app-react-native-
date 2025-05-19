@@ -31,7 +31,7 @@ const TabLayout = () => {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: "About",
         }}
       />
     </Tabs>

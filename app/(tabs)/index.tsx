@@ -8,13 +8,11 @@ import {
 import { Colors } from "@/constants/Colors";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { fetchBreakingNews, fetchRecommendedNews } from "../../utils/NewsApi";
 
-type Props = {};
-
-const Page = (props: Props) => {
+const Page = () => {
   // Breaking News
   const { data, isLoading: isBreakingLoading } = useQuery({
     queryKey: ["breakingNews"],
@@ -27,7 +25,6 @@ const Page = (props: Props) => {
     queryFn: fetchRecommendedNews,
   });
 
-  // console.log(`data.articles`, data.articles.length);
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={{ paddingHorizontal: 16 }}>
@@ -35,8 +32,7 @@ const Page = (props: Props) => {
 
         {/* Breaking News */}
         {isBreakingLoading ? (
-          // <Loading />
-          <Text>Loading</Text>
+          <Loading />
         ) : (
           <View>
             <MiniHeader label="Breaking News" />
@@ -44,17 +40,12 @@ const Page = (props: Props) => {
           </View>
         )}
       </View>
+
       {/* Recommended News */}
       <View style={{ paddingHorizontal: 16 }}>
         <MiniHeader label="Recommended" />
       </View>
-      <ScrollView
-        contentContainerStyle={
-          {
-            // paddingBottom: hp(80),
-          }
-        }
-      >
+      <ScrollView>
         {isRecommendedLoading ? (
           <Loading />
         ) : (
@@ -74,7 +65,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.white,
     flex: 1,
-
     paddingTop: 10,
     paddingBottom: 10,
   },

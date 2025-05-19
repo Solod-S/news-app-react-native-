@@ -8,7 +8,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 const { width, height } = Dimensions.get("window");
 
 // Типы пропсов
@@ -101,13 +101,13 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: hp(1.8),
     fontWeight: "600",
     textTransform: "capitalize",
   },
   authorText: {
     color: "#d4d4d4",
-    fontSize: 14,
+    fontSize: hp(1.6),
     fontWeight: "500",
   },
 });

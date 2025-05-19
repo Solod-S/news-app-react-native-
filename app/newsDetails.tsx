@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { ChevronLeftIcon, ShareIcon } from "react-native-heroicons/outline";
 import { BookmarkSquareIcon } from "react-native-heroicons/solid";
+import Toast from "react-native-toast-message";
 import { WebView } from "react-native-webview";
 
 const { height, width } = Dimensions.get("window");
@@ -47,13 +48,40 @@ export default function NewsDetails() {
           JSON.stringify(savedArticlesArray)
         );
         setIsBookmarked(true);
+        Toast.show({
+          type: "success",
+          position: "top",
+          text1: "✅ Success",
+          text2: "The article has been added successfully",
+          visibilityTime: 2000,
+          autoHide: true,
+          topOffset: 50,
+        });
       } else {
         const updated = savedArticlesArray.filter(a => a.url !== item.url);
         await AsyncStorage.setItem("savedArticles", JSON.stringify(updated));
         setIsBookmarked(false);
+        Toast.show({
+          type: "info", // or "error" if you prefer
+          position: "top",
+          text1: "🗑️ Deleted",
+          text2: "The article has been deleted",
+          visibilityTime: 2000,
+          autoHide: true,
+          topOffset: 50,
+        });
       }
     } catch (err) {
       console.error("Error Saving Article", err);
+      Toast.show({
+        type: "error",
+        position: "top",
+        text1: "❌ Error",
+        text2: "Something went wrong. Please try again.",
+        visibilityTime: 2000,
+        autoHide: true,
+        topOffset: 50,
+      });
     }
   };
 
@@ -104,7 +132,7 @@ export default function NewsDetails() {
           >
             <BookmarkSquareIcon
               size={25}
-              color={isBookmarked ? "green" : "gray"}
+              color={isBookmarked ? `${Colors.secondColor}` : "gray"}
               strokeWidth={2}
             />
           </TouchableOpacity>
