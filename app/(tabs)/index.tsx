@@ -9,6 +9,7 @@ import { Colors } from "@/constants/Colors";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { fetchBreakingNews, fetchRecommendedNews } from "../../utils/NewsApi";
 
@@ -32,7 +33,15 @@ const Page = () => {
 
         {/* Breaking News */}
         {isBreakingLoading ? (
-          <Loading />
+          <View
+            style={{
+              height: hp(20),
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Loading />
+          </View>
         ) : (
           <View>
             <MiniHeader label="Breaking News" />
@@ -47,7 +56,15 @@ const Page = () => {
       </View>
       <ScrollView>
         {isRecommendedLoading ? (
-          <Loading />
+          <View
+            style={{
+              height: hp(40),
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Loading />
+          </View>
         ) : (
           <NewsSection
             label="Recommendation"
